@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutoszampoña</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #000000; 
+            color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 90%;
+            text-align: center;
+            padding: 20px 0 15px 0;
+            font-size: 8vw;
+            font-weight: 900;
+            letter-spacing: 2px;
+            
+            color: #f0f0f0;
+            text-shadow: 
+                0 0 5px #00FFFF,
+                0 0 10px #00FFFF,
+                0 0 20px #00FFFF,
+                0 0 40px rgba(0, 255, 255, 0.5);
+            
+            border-bottom: 2px solid;
+            border-image: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff) 1;
+        }
+
+        #zampona-container {
+            width: 80vw;
+            max-width: 834px;
+            aspect-ratio: 2.08 / 1; 
+            position: relative;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 255, 255, 0.05);
+        }
+        
+        #zampona-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: pointer; 
+        }
+
+        footer {
+            width: 90%;
+            text-align: center;
+            padding: 15px 0 20px 0;
+            font-size: 0.85em;
+            color: #888888;
+        }
+
+        footer a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 10px;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: #76FF03;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    
+    <header>
+        Tutoszampoña
+    </header>
+
+    <div id="zampona-container">
+        <canvas id="zampona-canvas"></canvas>
+    </div>
+
+    <footer>
+        @tutoszampoña 
+        <a href="https://www.youtube.com/@tutoszampoña" target="_blank">Ver Canal de YouTube</a>
+    </footer>
+
+    <script>
+        const RMX = 1.5; 
+        const RMY = 2.0; 
+        const MSX = 1.0; 
+        const MSY = 1.9; 
+        const OX = 0.0; 
+        const OY = -0.02; 
+        const CF = 'zampona_config_completa.json';
+        const BI = 'zam.png'; 
+        const OW = 1366; 
+        const OH = 655; 
+        const DM = false; 
+        
+        const c = document.getElementById('zampona-canvas');
+        const ctx = c.getContext('2d');
+        
+        let cD = null;
+        let aE = [];
+        let cPA = null; 
+        let bI = new Image(); 
+
+        function gAC(co, s, o) {
+            return ((co - 0.5) * s) + 0.5 + o;
+        }
+
+        function iA(s) {
+            aE = s.map(sound => new Audio(sound.data));
+        }
+
+        function dZ(img, l) {
+            const W = c.width;
+            const H = c.height;
+
+            ctx.fillStyle = '#000000'; 
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.drawImage(img, 0, 0, W, H);
+
+            ctx.fillStyle = DM 
+                ? 'rgba(0, 255, 255, 0.5)'
+                : 'rgba(0, 255, 0, 0.001)'; 
+
+            l.forEach(light => {
+                const nCX = gAC(light.centerX, MSX, OX);
+                const nCY = gAC(light.centerY, MSY, OY);
+                
+                const cx = nCX * W;
+                const cy = nCY * H;
+                
+                const rx = light.radius * W * RMX; 
+                const ry = light.radius * H * RMY;
+                
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        
+        function rBI() {
+            if (cD) {
+                const W = c.width;
+                const H = c.height;
+                ctx.fillStyle = '#000000'; 
+                ctx.fillRect(0, 0, W, H);
+                dZ(bI, cD.lighting); 
+            }
+        }
+
+        function fT(l) {
+            const W = c.width;
+            const H = c.height;
+            
+            const nCX = gAC(l.centerX, MSX, OX);
+            const nCY = gAC(l.centerY, MSY, OY);
+            
+            const cx = nCX * W;
+            const cy = nCY * H;
+            
+            const rx = l.radius * W * RMX;
+            const ry = l.radius * H * RMY;
+            
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); 
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.9)'; 
+            ctx.fill();
+        }
+
+        function hIS(x, y) {
+            if (!cD || !cD.lighting) return;
+
+            const W = c.width;
+            const H = c.height;
+            
+            const r = c.getBoundingClientRect();
+            const sX = x * (W / r.width); 
+            const sY = y * (H / r.height);
+
+            for (const l of cD.lighting) {
+                const nCX = gAC(l.centerX, MSX, OX);
+                const nCY = gAC(l.centerY, MSY, OY);
+                
+                const cx = nCX * W;
+                const cy = nCY * H;
+                const rx = l.radius * W * RMX;
+                const ry = l.radius * H * RMY;
+
+                const tX = Math.pow(sX - cx, 2) / Math.pow(rx, 2);
+                const tY = Math.pow(sY - cy, 2) / Math.pow(ry, 2);
+
+                if (tX + tY <= 1) {
+                    const sI = l.tubeIndex; 
+                    const a = aE[sI];
+
+                    if (cPA) {
+                        hSS();
+                    }
+
+                    if (a) {
+                        a.currentTime = 0; 
+                        a.play().catch(e => console.error("Error:", e));
+                        cPA = a; 
+                        
+                        rBI(); 
+                        fT(l); 
+                    }
+                    return; 
+                }
+            }
+            
+            hSS();
+        }
+        
+        function hSS() {
+            if (cPA) {
+                cPA.pause();
+                cPA.currentTime = 0; 
+                cPA = null;
+                
+                rBI();
+            }
+        }
+
+        async function lADZ() {
+            try {
+                const res = await fetch(CF);
+                if (!res.ok) throw new Error(`E: ${CF}`);
+                
+                cD = await res.json();
+                iA(cD.sounds);
+                c.width = OW;
+                c.height = OH;
+                
+                c.addEventListener('mousedown', (e) => {
+                    hIS(e.offsetX, e.offsetY);
+                });
+                c.addEventListener('mouseup', hSS);
+                c.addEventListener('mouseleave', hSS); 
+
+                c.addEventListener('touchstart', (e) => {
+                    e.preventDefault(); 
+                    const t = e.touches[0];
+                    const r = c.getBoundingClientRect();
+                    const x = t.clientX - r.left;
+                    const y = t.clientY - r.top;
+                    hIS(x, y);
+                });
+                c.addEventListener('touchend', hSS);
+                c.addEventListener('touchcancel', hSS); 
+
+                bI.src = BI;
+                bI.onload = () => {
+                    rBI();
+                };
+                bI.onerror = () => {
+                    console.error('E BI');
+                    alert(`E: "${BI}".`);
+                    dZ(new Image(), cD.lighting); 
+                };
+
+            } catch (error) {
+                console.error('E L&R:', error);
+                ctx.font = '20px Arial';
+                ctx.fillStyle = 'red';
+                ctx.fillText(`E: ${error.message}`, 50, 50);
+            }
+        }
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        lADZ();
+    </script>
+</body>
+</html>
